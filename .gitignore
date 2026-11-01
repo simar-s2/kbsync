@@ -2,3 +2,4 @@
 /.build/
 /.swiftpm/
 *.xcodeproj
+/docs/images/hero.mp4

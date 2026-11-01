@@ -42,11 +42,11 @@ demo: build $(DISPLAY_TOOL)
 film: $(DISPLAY_TOOL)
 	scripts/film.sh
 
-# Turns a recording into docs/images/hero.gif and hero.mp4:
-#   make gif VIDEO=~/Movies/kbsync.mov START=3 DURATION=12
+# Turns a recording into docs/images/hero.gif and hero.mp4 (HDR is converted):
+#   make gif VIDEO=~/Movies/kbsync.mov START=3 DURATION=12 CROP=1080:1300:0:340
 gif:
 	@test -n "$(VIDEO)" || { echo "usage: make gif VIDEO=path/to/video [START=s] [DURATION=s]"; exit 1; }
-	scripts/video-to-gif.sh "$(VIDEO)" $(or $(START),0) $(or $(DURATION),12)
+	CROP=$(CROP) scripts/video-to-gif.sh "$(VIDEO)" $(or $(START),0) $(or $(DURATION),12)
 
 clean:
 	rm -rf .build
