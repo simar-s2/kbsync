@@ -8,6 +8,7 @@ let package = Package(
         .target(name: "KBSyncCore"),
         .target(name: "KBSyncSystem", dependencies: ["KBSyncCore"]),
         .executableTarget(name: "kbsync", dependencies: ["KBSyncCore", "KBSyncSystem"]),
+        .executableTarget(name: "KBSyncApp", dependencies: ["KBSyncCore", "KBSyncSystem"]),
         .testTarget(name: "KBSyncCoreTests", dependencies: ["KBSyncCore"]),
     ]
 )
