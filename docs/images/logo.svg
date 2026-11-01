@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232a3b"/>
+      <stop offset="1" stop-color="#0b0e14"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#c084fc"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-80%" width="180%" height="260%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <g id="keys">
+      <rect x="44" y="166" width="30" height="24" rx="6"/>
+      <rect x="80" y="166" width="30" height="24" rx="6"/>
+      <rect x="116" y="166" width="30" height="24" rx="6"/>
+      <rect x="152" y="166" width="30" height="24" rx="6"/>
+      <rect x="188" y="166" width="24" height="24" rx="6"/>
+      <rect x="44" y="196" width="30" height="22" rx="6"/>
+      <rect x="80" y="196" width="102" height="22" rx="6"/>
+      <rect x="188" y="196" width="24" height="22" rx="6"/>
+    </g>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#tile)"/>
+  <rect x="36" y="32" width="184" height="114" rx="14" fill="url(#screen)" filter="url(#glow)" opacity="0.55"/>
+  <rect x="44" y="40" width="168" height="98" rx="10" fill="url(#screen)"/>
+  <use href="#keys" fill="#c7d2fe" filter="url(#glow)" opacity="0.9"/>
+  <use href="#keys" fill="#f8fafc"/>
+</svg>
