@@ -37,7 +37,8 @@ You need a MacBook with a backlit keyboard and macOS 14 or later. Pick one of th
 **Menu bar app**
 
 ```bash
-brew install --cask simar-s2/tap/kbsync
+brew tap simar-s2/kbsync https://github.com/simar-s2/kbsync
+brew install --cask simar-s2/kbsync/kbsync
 ```
 
 Or download `kbsync-0.2.0.zip` from [Releases](https://github.com/simar-s2/kbsync/releases), unzip it and drag kbsync to Applications.
@@ -47,7 +48,8 @@ The first time you open it, macOS says it can't verify the developer, because th
 **Command line**
 
 ```bash
-brew install simar-s2/tap/kbsync
+brew tap simar-s2/kbsync https://github.com/simar-s2/kbsync
+brew install simar-s2/kbsync/kbsync
 kbsync install                   # run in the background and at login
 ```
 
