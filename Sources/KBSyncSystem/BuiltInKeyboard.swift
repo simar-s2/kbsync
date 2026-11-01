@@ -16,7 +16,7 @@ import KBSyncCore
     func registerNotificationForKeys(_ keys: NSArray, keyboardID: UInt64, block: @escaping (AnyObject?, AnyObject?) -> Void)
 }
 
-final class BuiltInKeyboard: KeyboardBacklight {
+public final class BuiltInKeyboard: KeyboardBacklight {
     private static let selectors = [
         "copyKeyboardBacklightIDs",
         "isKeyboardBuiltIn:",
@@ -34,7 +34,7 @@ final class BuiltInKeyboard: KeyboardBacklight {
     private let client: KeyboardBrightnessClientAPI
     private let id: UInt64
 
-    init() throws {
+    public init() throws {
         let path = "/System/Library/PrivateFrameworks/CoreBrightness.framework/CoreBrightness"
         guard dlopen(path, RTLD_NOW) != nil else { throw BridgeError.missingFramework("CoreBrightness") }
         guard let type = NSClassFromString("KeyboardBrightnessClient") as? NSObject.Type else {
@@ -54,31 +54,31 @@ final class BuiltInKeyboard: KeyboardBacklight {
         self.id = id
     }
 
-    func brightness() -> Double? {
+    public func brightness() -> Double? {
         Double(client.brightness(forKeyboard: id))
     }
 
     /// Only the idle flag counts. CoreBrightness also reports the backlight as
     /// suppressed whenever its level is 0%, and a write lights it straight back
     /// up, so treating suppressed as asleep would leave it dark for good.
-    func isIdleDimmed() -> Bool {
+    public func isIdleDimmed() -> Bool {
         client.isBacklightDimmed(onKeyboard: id)
     }
 
-    func setBrightness(_ value: Double, fadeMilliseconds: Int) -> Bool {
+    public func setBrightness(_ value: Double, fadeMilliseconds: Int) -> Bool {
         client.setBrightness(Float(value), fadeSpeed: Int32(fadeMilliseconds), commit: true, forKeyboard: id)
     }
 
-    func isAutoBrightnessEnabled() -> Bool {
+    public func isAutoBrightnessEnabled() -> Bool {
         client.isAutoBrightnessEnabled(forKeyboard: id)
     }
 
-    func setAutoBrightnessEnabled(_ enabled: Bool) -> Bool {
+    public func setAutoBrightnessEnabled(_ enabled: Bool) -> Bool {
         client.enableAutoBrightness(enabled, forKeyboard: id)
     }
 
     /// "Turn keyboard backlight off after inactivity", in seconds; 0 means never.
-    func idleDimSeconds() -> Double {
+    public func idleDimSeconds() -> Double {
         client.idleDimTime(forKeyboard: id)
     }
 

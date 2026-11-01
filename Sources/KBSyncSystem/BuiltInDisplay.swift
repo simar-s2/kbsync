@@ -5,7 +5,7 @@ import KBSyncCore
 /// The built-in display, through the private DisplayServices framework. Its
 /// brightness-change notification is system wide: it fires for the brightness
 /// keys, Control Center, the ambient light sensor and other apps alike.
-final class BuiltInDisplay: DisplayBrightness {
+public final class BuiltInDisplay: DisplayBrightness {
     private typealias GetBrightness = @convention(c) (CGDirectDisplayID, UnsafeMutablePointer<Float>) -> Int32
     private typealias Register = @convention(c) (CGDirectDisplayID, CGDirectDisplayID, CFNotificationCallback) -> Int32
     private typealias Unregister = @convention(c) (CGDirectDisplayID, CGDirectDisplayID) -> Int32
@@ -29,7 +29,7 @@ final class BuiltInDisplay: DisplayBrightness {
         return source
     }()
 
-    init() throws {
+    public init() throws {
         let path = "/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices"
         guard let handle = dlopen(path, RTLD_NOW) else { throw BridgeError.missingFramework("DisplayServices") }
         func symbol<T>(_ name: String, as type: T.Type) throws -> T {
@@ -49,7 +49,7 @@ final class BuiltInDisplay: DisplayBrightness {
         return ids.prefix(Int(count)).first { CGDisplayIsBuiltin($0) != 0 }
     }
 
-    func brightness() -> Double? {
+    public func brightness() -> Double? {
         guard let id = Self.builtInID() else { return nil }
         var value: Float = 0
         guard getBrightness(id, &value) == 0 else { return nil }
@@ -79,13 +79,13 @@ final class BuiltInDisplay: DisplayBrightness {
     }
 }
 
-enum BridgeError: Error, CustomStringConvertible {
+public enum BridgeError: Error, CustomStringConvertible {
     case missingFramework(String)
     case missingSymbol(String)
     case noKeyboard
     case noDisplay
 
-    var description: String {
+    public var description: String {
         switch self {
         case .missingFramework(let name):
             return "couldn't load the \(name) framework; this macOS version may have moved it"

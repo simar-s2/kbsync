@@ -1,5 +1,6 @@
 import Foundation
 import KBSyncCore
+import KBSyncSystem
 
 let usage = """
 kbsync \(version): keep the MacBook keyboard backlight in step with the screen brightness.
@@ -53,7 +54,7 @@ do {
     case .run(let options):
         let daemon: Daemon
         do {
-            daemon = Daemon(options: options, display: try BuiltInDisplay(), keyboard: try BuiltInKeyboard())
+            daemon = Daemon(options: options, engine: try Engine(curve: options.curve, fadeMilliseconds: options.fadeMilliseconds))
         } catch BridgeError.noKeyboard {
             // A clean exit, so launchd doesn't keep restarting the agent on a Mac without a backlight.
             print("kbsync: no backlit keyboard found, nothing to do")

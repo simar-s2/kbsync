@@ -1,19 +1,16 @@
-import AppKit
+import Foundation
 import KBSyncCore
+import KBSyncSystem
 
-/// `kbsync run`: wires the system notifications to the syncer and runs until signalled.
+/// `kbsync run`: runs the engine in the foreground and logs until signalled.
 final class Daemon {
     private let options: SyncOptions
-    private let display: BuiltInDisplay
-    private let keyboard: BuiltInKeyboard
-    private let syncer: Syncer
+    private let engine: Engine
     private var signalSources: [DispatchSourceSignal] = []
 
-    init(options: SyncOptions, display: BuiltInDisplay, keyboard: BuiltInKeyboard) {
+    init(options: SyncOptions, engine: Engine) {
         self.options = options
-        self.display = display
-        self.keyboard = keyboard
-        syncer = Syncer(display: display, keyboard: keyboard, curve: options.curve, fadeMilliseconds: options.fadeMilliseconds)
+        self.engine = engine
     }
 
     func run() -> Never {
@@ -24,29 +21,9 @@ final class Daemon {
         log("kbsync \(version): keyboard follows the built-in display "
             + "(\(Int((curve.minimum * 100).rounded()))–\(percent(curve.maximum)), gamma \(String(format: "%g", curve.gamma)), "
             + "\(options.fadeMilliseconds) ms fade)")
-        if !options.keepAutoBrightness, syncer.takeOverAutoBrightness() {
+        if !options.keepAutoBrightness, engine.takeOverAutoBrightness() {
             log("turned off \"Adjust keyboard brightness in low light\" until kbsync stops")
         }
-
-        display.observe { [unowned self] in sync() }
-
-        // Writes made while macOS has the backlight dimmed don't stick, so catch
-        // up once it is lit again. The short delay lets both dim flags settle.
-        keyboard.observeSleep { [unowned self] in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [unowned self] in
-                if !keyboard.isIdleDimmed() { sync() }
-            }
-        }
-
-        CGDisplayRegisterReconfigurationCallback({ _, flags, context in
-            guard !flags.contains(.beginConfigurationFlag), let context else { return }
-            let daemon = Unmanaged<Daemon>.fromOpaque(context).takeUnretainedValue()
-            DispatchQueue.main.async { daemon.displaysChanged() }
-        }, Unmanaged.passUnretained(self).toOpaque())
-
-        NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.screensDidWakeNotification, object: nil, queue: .main
-        ) { [unowned self] _ in sync() }
 
         for signalNumber in [SIGINT, SIGTERM, SIGHUP] {
             signal(signalNumber, SIG_IGN)
@@ -56,31 +33,25 @@ final class Daemon {
             signalSources.append(source)
         }
 
-        sync()
+        engine.onSync = { [options] result in
+            switch result {
+            case .set(let display, let keyboard):
+                if options.verbose { log("display \(percent(display)) → keyboard \(percent(keyboard))") }
+            case .deferred(let display, let keyboard):
+                if options.verbose { log("display \(percent(display)), keyboard is idle-dimmed; \(percent(keyboard)) when it wakes") }
+            case .failed(_, let keyboard):
+                log("couldn't set the keyboard to \(percent(keyboard))")
+            case .unchanged, .displayUnavailable:
+                break
+            }
+        }
+        engine.start()
         RunLoop.main.run()
         fatalError("the main run loop exited")
     }
 
-    private func displaysChanged() {
-        display.reattach()
-        sync()
-    }
-
-    private func sync() {
-        switch syncer.sync() {
-        case .set(let display, let keyboard):
-            if options.verbose { log("display \(percent(display)) → keyboard \(percent(keyboard))") }
-        case .deferred(let display, let keyboard):
-            if options.verbose { log("display \(percent(display)), keyboard is idle-dimmed; \(percent(keyboard)) when it wakes") }
-        case .failed(_, let keyboard):
-            log("couldn't set the keyboard to \(percent(keyboard))")
-        case .unchanged, .displayUnavailable:
-            break
-        }
-    }
-
     private func stop() -> Never {
-        if syncer.restoreAutoBrightness() {
+        if engine.stop() {
             log("turned \"Adjust keyboard brightness in low light\" back on")
         }
         log("stopped")

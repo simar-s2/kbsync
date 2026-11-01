@@ -36,8 +36,8 @@ public final class Syncer {
 
     private let display: DisplayBrightness
     private let keyboard: KeyboardBacklight
-    private let curve: Curve
-    private let fadeMilliseconds: Int
+    public var curve: Curve
+    public var fadeMilliseconds: Int
     private var turnedOffAutoBrightness = false
 
     public init(display: DisplayBrightness, keyboard: KeyboardBacklight, curve: Curve, fadeMilliseconds: Int) {

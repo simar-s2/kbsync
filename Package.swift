@@ -6,7 +6,8 @@ let package = Package(
     platforms: [.macOS(.v14)],
     targets: [
         .target(name: "KBSyncCore"),
-        .executableTarget(name: "kbsync", dependencies: ["KBSyncCore"]),
+        .target(name: "KBSyncSystem", dependencies: ["KBSyncCore"]),
+        .executableTarget(name: "kbsync", dependencies: ["KBSyncCore", "KBSyncSystem"]),
         .testTarget(name: "KBSyncCoreTests", dependencies: ["KBSyncCore"]),
     ]
 )
