@@ -1,6 +1,6 @@
 import Foundation
 
-public let version = "0.1.0"
+public let version = "0.2.0"
 
 public struct SyncOptions: Equatable {
     public var curve = Curve()
