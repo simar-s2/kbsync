@@ -1,5 +1,7 @@
 PREFIX ?= /usr/local
 BIN := .build/release/kbsync
+VERSION := $(shell sed -n 's/^public let version = "\(.*\)"/\1/p' Sources/KBSyncCore/Arguments.swift)
+APP := .build/kbsync.app
 
 # With only the Command Line Tools installed (no Xcode), SwiftPM doesn't find
 # the Swift Testing framework on its own.
@@ -9,7 +11,7 @@ TEST_FLAGS := -Xswiftc -F$(CLT_DEVELOPER)/Frameworks -Xlinker -F$(CLT_DEVELOPER)
 	-Xlinker -rpath -Xlinker $(CLT_DEVELOPER)/Frameworks -Xlinker -rpath -Xlinker $(CLT_DEVELOPER)/usr/lib
 endif
 
-.PHONY: build test install uninstall demo film gif clean
+.PHONY: build test install uninstall app install-app dist demo film gif clean
 
 build:
 	swift build -c release
@@ -25,6 +27,29 @@ install:
 
 uninstall:
 	rm -f $(PREFIX)/bin/kbsync
+
+# The menu bar app: SwiftPM builds the executable, this wraps it in a bundle.
+app:
+	swift build -c release --product KBSyncApp
+	rm -rf $(APP)
+	mkdir -p $(APP)/Contents/MacOS $(APP)/Contents/Resources
+	cp .build/release/KBSyncApp $(APP)/Contents/MacOS/kbsync
+	cp App/Info.plist $(APP)/Contents/Info.plist
+	plutil -replace CFBundleShortVersionString -string $(VERSION) $(APP)/Contents/Info.plist
+	plutil -replace CFBundleVersion -string $(VERSION) $(APP)/Contents/Info.plist
+	cp App/AppIcon.icns $(APP)/Contents/Resources/AppIcon.icns
+	codesign --force --sign - $(APP)
+
+install-app: app
+	rm -rf /Applications/kbsync.app
+	cp -R $(APP) /Applications/kbsync.app
+
+# The zip attached to a GitHub release, which the Homebrew cask downloads.
+dist: app
+	rm -rf .build/dist
+	mkdir -p .build/dist
+	ditto -c -k --keepParent $(APP) .build/dist/kbsync-$(VERSION).zip
+	shasum -a 256 .build/dist/kbsync-$(VERSION).zip
 
 DISPLAY_TOOL := .build/set-display-brightness
 
