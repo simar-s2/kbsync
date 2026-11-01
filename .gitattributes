@@ -1,0 +1,2 @@
+# Keep the GIFs out of source tarballs; Homebrew only needs the code.
+docs/images/*.gif export-ignore
