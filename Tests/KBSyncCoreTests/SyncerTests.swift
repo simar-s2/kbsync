@@ -7,21 +7,21 @@ private final class FakeDisplay: DisplayBrightness {
     func brightness() -> Double? { level }
 }
 
-/// Behaves like the real backlight: writes while asleep are accepted but ignored.
+/// Behaves like the real backlight: writes while idle-dimmed are accepted but ignored.
 private final class FakeKeyboard: KeyboardBacklight {
     var level = 0.3
-    var asleep = false
+    var idleDimmed = false
     var autoBrightness = true
     var writesFail = false
     private(set) var writes: [(value: Double, fade: Int)] = []
 
-    func brightness() -> Double? { asleep ? 0 : level }
-    func isAsleep() -> Bool { asleep }
+    func brightness() -> Double? { idleDimmed ? 0 : level }
+    func isIdleDimmed() -> Bool { idleDimmed }
 
     func setBrightness(_ value: Double, fadeMilliseconds: Int) -> Bool {
         guard !writesFail else { return false }
         writes.append((value, fadeMilliseconds))
-        if !asleep { level = value }
+        if !idleDimmed { level = value }
         return true
     }
 
@@ -74,12 +74,12 @@ private final class FakeKeyboard: KeyboardBacklight {
 
     @Test func waitsWhileTheKeyboardIsDimmedThenCatchesUp() {
         let syncer = syncer()
-        keyboard.asleep = true
+        keyboard.idleDimmed = true
         display.level = 0.8
         #expect(syncer.sync() == .deferred(display: 0.8, keyboard: 0.8))
         #expect(keyboard.writes.isEmpty)
 
-        keyboard.asleep = false
+        keyboard.idleDimmed = false
         #expect(syncer.sync() == .set(display: 0.8, keyboard: 0.8))
         #expect(keyboard.level == 0.8)
     }

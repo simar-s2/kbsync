@@ -10,7 +10,6 @@ import KBSyncCore
     func brightness(forKeyboard id: UInt64) -> Float
     func setBrightness(_ value: Float, fadeSpeed: Int32, commit: Bool, forKeyboard id: UInt64) -> Bool
     func isBacklightDimmed(onKeyboard id: UInt64) -> Bool
-    func isBacklightSuppressed(onKeyboard id: UInt64) -> Bool
     func isAutoBrightnessEnabled(forKeyboard id: UInt64) -> Bool
     func enableAutoBrightness(_ enabled: Bool, forKeyboard id: UInt64) -> Bool
     func idleDimTime(forKeyboard id: UInt64) -> Double
@@ -24,7 +23,6 @@ final class BuiltInKeyboard: KeyboardBacklight {
         "brightnessForKeyboard:",
         "setBrightness:fadeSpeed:commit:forKeyboard:",
         "isBacklightDimmedOnKeyboard:",
-        "isBacklightSuppressedOnKeyboard:",
         "isAutoBrightnessEnabledForKeyboard:",
         "enableAutoBrightness:forKeyboard:",
         "idleDimTimeForKeyboard:",
@@ -60,8 +58,11 @@ final class BuiltInKeyboard: KeyboardBacklight {
         Double(client.brightness(forKeyboard: id))
     }
 
-    func isAsleep() -> Bool {
-        client.isBacklightDimmed(onKeyboard: id) || client.isBacklightSuppressed(onKeyboard: id)
+    /// Only the idle flag counts. CoreBrightness also reports the backlight as
+    /// suppressed whenever its level is 0%, and a write lights it straight back
+    /// up, so treating suppressed as asleep would leave it dark for good.
+    func isIdleDimmed() -> Bool {
+        client.isBacklightDimmed(onKeyboard: id)
     }
 
     func setBrightness(_ value: Double, fadeMilliseconds: Int) -> Bool {
@@ -81,8 +82,8 @@ final class BuiltInKeyboard: KeyboardBacklight {
         client.idleDimTime(forKeyboard: id)
     }
 
-    /// Calls `handler` on the main queue when macOS dims or restores the
-    /// backlight on its own (inactivity, lid, display sleep).
+    /// Calls `handler` on the main queue when macOS switches the backlight off
+    /// or on by itself (inactivity, lid, display sleep, a 0% level).
     func observeSleep(_ handler: @escaping () -> Void) {
         let keys = ["KeyboardBacklightIdleDimActive", "KeyboardBacklightSuppressed"] as NSArray
         client.registerNotificationForKeys(keys, keyboardID: id) { _, _ in

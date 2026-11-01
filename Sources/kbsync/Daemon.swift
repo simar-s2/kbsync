@@ -34,7 +34,7 @@ final class Daemon {
         // up once it is lit again. The short delay lets both dim flags settle.
         keyboard.observeSleep { [unowned self] in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [unowned self] in
-                if !keyboard.isAsleep() { sync() }
+                if !keyboard.isIdleDimmed() { sync() }
             }
         }
 
@@ -71,7 +71,7 @@ final class Daemon {
         case .set(let display, let keyboard):
             if options.verbose { log("display \(percent(display)) → keyboard \(percent(keyboard))") }
         case .deferred(let display, let keyboard):
-            if options.verbose { log("display \(percent(display)), keyboard is dimmed; \(percent(keyboard)) when it wakes") }
+            if options.verbose { log("display \(percent(display)), keyboard is idle-dimmed; \(percent(keyboard)) when it wakes") }
         case .failed(_, let keyboard):
             log("couldn't set the keyboard to \(percent(keyboard))")
         case .unchanged, .displayUnavailable:

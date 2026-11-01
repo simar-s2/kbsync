@@ -35,8 +35,8 @@ func status(_ options: SyncOptions) throws {
     guard let displayLevel = display.brightness() else { throw BridgeError.noDisplay }
     let target = options.curve.keyboard(forDisplay: displayLevel)
     row("display", percent(displayLevel))
-    if keyboard.isAsleep() {
-        row("keyboard", "off for now (idle or lid closed); target \(percent(target))")
+    if keyboard.isIdleDimmed() {
+        row("keyboard", "off after inactivity; target \(percent(target))")
     } else {
         row("keyboard", "\(percent(keyboard.brightness() ?? 0)) (target \(percent(target)))")
     }

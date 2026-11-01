@@ -9,9 +9,9 @@ public protocol DisplayBrightness: AnyObject {
 /// The keyboard backlight, reduced to what syncing needs.
 public protocol KeyboardBacklight: AnyObject {
     func brightness() -> Double?
-    /// True while macOS holds the backlight off by itself: idle dimming, a
-    /// closed lid or a sleeping display. Writes made then do not stick.
-    func isAsleep() -> Bool
+    /// True while macOS has switched the backlight off after inactivity.
+    /// Writes made then don't light it; it comes back at its old level.
+    func isIdleDimmed() -> Bool
     func setBrightness(_ value: Double, fadeMilliseconds: Int) -> Bool
     /// The "Adjust keyboard brightness in low light" setting.
     func isAutoBrightnessEnabled() -> Bool
@@ -21,7 +21,7 @@ public protocol KeyboardBacklight: AnyObject {
 public enum SyncResult: Equatable {
     /// The display brightness could not be read.
     case displayUnavailable
-    /// The keyboard is asleep; the target is applied when it wakes.
+    /// The keyboard is idle-dimmed; the target is applied when it wakes.
     case deferred(display: Double, keyboard: Double)
     /// The keyboard was already within tolerance of the target.
     case unchanged(display: Double, keyboard: Double)
@@ -54,7 +54,7 @@ public final class Syncer {
     public func sync() -> SyncResult {
         guard let value = display.brightness() else { return .displayUnavailable }
         let target = curve.keyboard(forDisplay: value)
-        if keyboard.isAsleep() {
+        if keyboard.isIdleDimmed() {
             return .deferred(display: value, keyboard: target)
         }
         if let current = keyboard.brightness(), abs(current - target) < Self.tolerance {
