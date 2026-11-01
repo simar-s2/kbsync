@@ -19,9 +19,10 @@ Dim the screen and the keyboard dims with it. Brighten it and the keyboard comes
 
 <br>
 
-<!-- Swap in the camera recording here once it exists: docs/images/hero.gif (make gif VIDEO=...). -->
 <p align="center">
-  <img src="docs/images/demo.gif" width="760" alt="kbsync following a sweep of the display brightness. Halfway through, macOS's 30-second idle timeout switched the backlight off; kbsync waited and set 55% the moment the keyboard woke.">
+  <img src="docs/images/hero.gif" width="440" alt="A MacBook Pro in a dark room. As the brightness key is pressed, the screen and the keyboard backlight dim together, both go fully dark, then come back up together.">
+  <br>
+  <sub>Filmed on my MacBook Pro: screen and keyboard dim together, go dark together, and come back together.</sub>
 </p>
 
 macOS can dim the keyboard for a dark room, or switch it off when you stop typing, but nothing ties it to the screen. Turn the screen down at night and the keyboard stays as bright as it was, so you go into Control Center and fix it by hand. I looked for a tool that does this and found ones that cap the backlight, dim it below the minimum, or light it only while you type, but none that follow the display. So I built kbsync: a small background tool that moves the keyboard backlight whenever the screen brightness changes, however you change it.
@@ -48,6 +49,12 @@ git clone https://github.com/simar-s2/kbsync && cd kbsync
 make build
 .build/release/kbsync run -v       # try it: press the brightness keys and watch the keyboard
 ```
+
+With `-v` it logs every change. In this recording the display is swept automatically; halfway through, macOS's 30-second idle timeout switches the backlight off, and kbsync sets 55% the moment the keyboard wakes.
+
+<p align="center">
+  <img src="docs/images/demo.gif" width="760" alt="Terminal output of kbsync run --verbose: each display level is followed by the matching keyboard level, two changes are held while the keyboard is idle-dimmed, then applied when it wakes.">
+</p>
 
 Happy with it? Install it and have it start at every login:
 
@@ -136,7 +143,7 @@ On each notification kbsync reads the display level, runs it through the curve, 
 <br>
 
 - **Why not poll?** To feel instant, polling has to run ten or more times a second, waking the CPU constantly to watch a value that changes a few times an hour. The notification costs nothing until the brightness actually changes.
-- **Idle-off.** While macOS holds the backlight off after inactivity, `brightnessForKeyboard:` reports 0, and writes are accepted but don't light the keyboard. I found this by leaving the Mac idle with a probe running. So kbsync skips writes while `isBacklightDimmedOnKeyboard:` is true, listens for the `KeyboardBacklightIdleDimActive` and `KeyboardBacklightSuppressed` notifications, and catches up when they clear. The GIF shows this: the 30-second timeout hit mid-recording, and the keyboard got its 55% the moment it woke.
+- **Idle-off.** While macOS holds the backlight off after inactivity, `brightnessForKeyboard:` reports 0, and writes are accepted but don't light the keyboard. I found this by leaving the Mac idle with a probe running. So kbsync skips writes while `isBacklightDimmedOnKeyboard:` is true, listens for the `KeyboardBacklightIdleDimActive` and `KeyboardBacklightSuppressed` notifications, and catches up when they clear. The terminal GIF in Quick start shows this: the 30-second timeout hit mid-recording, and the keyboard got its 55% the moment it woke.
 - **Suppressed isn't asleep.** CoreBrightness also reports the backlight as suppressed whenever its level is 0%, and the next write lights it straight back up. kbsync first counted suppressed as asleep too, so after the screen went to 0% the keyboard stayed dark for good. Now only the idle flag holds writes back.
 - **The light sensor.** With "Adjust keyboard brightness in low light" on, the sensor moves the keyboard by itself; while probing, I watched it drift from 24.5% to 24.0% with nothing else touching it. Two controllers fighting over one light is worse than either alone, so kbsync turns the sensor off while it runs and back on when it exits. The display's own auto-brightness is untouched, so if you use it, the keyboard still follows the room, through the display.
 - **Fade units.** `setBrightness:fadeSpeed:commit:forKeyboard:` isn't documented. Reading the backlight's PWM duty cycle from the IORegistry during a call with `fadeSpeed: 2000` showed an even ramp over 2.0 s, so the unit is milliseconds.
