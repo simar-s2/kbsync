@@ -19,6 +19,16 @@ final class BuiltInDisplay: DisplayBrightness {
     /// the handler lives here. There is only ever one display being followed.
     private static var onChange: (() -> Void)?
 
+    /// Notifications arrive on a background thread, sometimes hundreds a second
+    /// (a held key, a dragged slider). This source merges each burst into one
+    /// call on the main queue, which is enough because a sync reads the latest level.
+    private static let changes: DispatchSourceUserDataAdd = {
+        let source = DispatchSource.makeUserDataAddSource(queue: .main)
+        source.setEventHandler { BuiltInDisplay.onChange?() }
+        source.resume()
+        return source
+    }()
+
     init() throws {
         let path = "/System/Library/PrivateFrameworks/DisplayServices.framework/DisplayServices"
         guard let handle = dlopen(path, RTLD_NOW) else { throw BridgeError.missingFramework("DisplayServices") }
@@ -63,7 +73,7 @@ final class BuiltInDisplay: DisplayBrightness {
         }
         guard let id else { return }
         let status = register(id, id) { _, _, _, _, _ in
-            DispatchQueue.main.async { BuiltInDisplay.onChange?() }
+            BuiltInDisplay.changes.add(data: 1)
         }
         if status == 0 { observedID = id }
     }
