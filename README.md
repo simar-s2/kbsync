@@ -41,7 +41,7 @@ brew tap simar-s2/kbsync https://github.com/simar-s2/kbsync
 brew install --cask simar-s2/kbsync/kbsync
 ```
 
-Or download `kbsync-0.2.0.zip` from [Releases](https://github.com/simar-s2/kbsync/releases), unzip it and drag kbsync to Applications.
+Or download `kbsync-0.2.1.zip` from [Releases](https://github.com/simar-s2/kbsync/releases), unzip it and drag kbsync to Applications.
 
 The first time you open it, macOS says it can't verify the developer, because the app isn't signed with a paid Apple Developer ID. Go to System Settings → Privacy & Security and click **Open Anyway**. You only do this once.
 

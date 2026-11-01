@@ -1,6 +1,6 @@
 cask "kbsync" do
-  version "0.2.0"
-  sha256 "b295d2959bf1649ae675a9a1d132d9f3201bd3bbe7aa9d5ad985df40e8dad4e7"
+  version "0.2.1"
+  sha256 "839ca58de074a6c3b1b1ec3c8be41ea39d3a31a9edcde79ad1248e0670dc4f5b"
 
   url "https://github.com/simar-s2/kbsync/releases/download/v#{version}/kbsync-#{version}.zip"
   name "kbsync"
