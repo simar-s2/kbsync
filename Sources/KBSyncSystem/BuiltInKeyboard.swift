@@ -83,9 +83,10 @@ public final class BuiltInKeyboard: KeyboardBacklight {
     }
 
     /// Calls `handler` on the main queue when macOS switches the backlight off
-    /// or on by itself (inactivity, lid, display sleep, a 0% level).
-    func observeSleep(_ handler: @escaping () -> Void) {
-        let keys = ["KeyboardBacklightIdleDimActive", "KeyboardBacklightSuppressed"] as NSArray
+    /// or on by itself (inactivity, lid, display sleep, a 0% level), or when
+    /// anything turns "Adjust keyboard brightness in low light" on or off.
+    func observeChanges(_ handler: @escaping () -> Void) {
+        let keys = ["KeyboardBacklightIdleDimActive", "KeyboardBacklightSuppressed", "KeyboardBacklightABEnabled"] as NSArray
         client.registerNotificationForKeys(keys, keyboardID: id) { _, _ in
             DispatchQueue.main.async(execute: handler)
         }

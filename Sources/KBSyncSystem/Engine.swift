@@ -9,6 +9,8 @@ public final class Engine {
     public let keyboard: BuiltInKeyboard
     private let syncer: Syncer
     private var observing = false
+    /// Set by takeOverAutoBrightness: keep the light sensor off while running.
+    private var holdsAutoBrightnessOff = false
     public private(set) var isRunning = false
 
     /// Called on the main queue after every sync, for logs and the menu.
@@ -32,7 +34,8 @@ public final class Engine {
     /// Turns off "Adjust keyboard brightness in low light", which would
     /// otherwise keep moving the keyboard. Returns true if it was on.
     public func takeOverAutoBrightness() -> Bool {
-        syncer.takeOverAutoBrightness()
+        holdsAutoBrightnessOff = true
+        return syncer.takeOverAutoBrightness()
     }
 
     public func start() {
@@ -46,6 +49,7 @@ public final class Engine {
     @discardableResult
     public func stop() -> Bool {
         isRunning = false
+        holdsAutoBrightnessOff = false
         return syncer.restoreAutoBrightness()
     }
 
@@ -60,8 +64,13 @@ public final class Engine {
 
         // Writes made while macOS has the backlight dimmed don't stick, so catch
         // up once it is lit again. The short delay lets both dim flags settle.
-        keyboard.observeSleep { [unowned self] in
+        keyboard.observeChanges { [unowned self] in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [unowned self] in
+                // Something else turned the light sensor back on (another kbsync
+                // quitting, say); while running, kbsync keeps it off.
+                if isRunning, holdsAutoBrightnessOff, keyboard.isAutoBrightnessEnabled() {
+                    _ = syncer.takeOverAutoBrightness()
+                }
                 if !keyboard.isIdleDimmed() { sync() }
             }
         }
