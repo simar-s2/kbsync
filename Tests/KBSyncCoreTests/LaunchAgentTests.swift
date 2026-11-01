@@ -23,6 +23,14 @@ import Testing
         #expect(plist["StandardErrorPath"] as? String == "/tmp/kbsync.log")
     }
 
+    @Test func homebrewInstallsPointAtTheStableOptLink() {
+        #expect(LaunchAgent.stableExecutablePath("/opt/homebrew/Cellar/kbsync/0.2.0/bin/kbsync")
+            == "/opt/homebrew/opt/kbsync/bin/kbsync")
+        #expect(LaunchAgent.stableExecutablePath("/usr/local/Cellar/kbsync/0.2.0_1/bin/kbsync")
+            == "/usr/local/opt/kbsync/bin/kbsync")
+        #expect(LaunchAgent.stableExecutablePath("/usr/local/bin/kbsync") == "/usr/local/bin/kbsync")
+    }
+
     @Test func plistIsValidXML() throws {
         let data = try LaunchAgent.plistData(executable: "/bin/kbsync", flags: [], logPath: "/tmp/log")
         let text = String(decoding: data, as: UTF8.self)

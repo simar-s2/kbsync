@@ -12,6 +12,13 @@ public enum LaunchAgent {
         home.appendingPathComponent("Library/Logs/kbsync.log")
     }
 
+    /// The path the agent should run. Homebrew installs into a versioned Cellar
+    /// folder that `brew upgrade` deletes, so point at its stable opt link instead.
+    public static func stableExecutablePath(_ path: String) -> String {
+        guard let range = path.range(of: "/Cellar/kbsync/[^/]+/", options: .regularExpression) else { return path }
+        return path.replacingCharacters(in: range, with: "/opt/kbsync/")
+    }
+
     public static func plist(executable: String, flags: [String], logPath: String) -> [String: Any] {
         [
             "Label": label,

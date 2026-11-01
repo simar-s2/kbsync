@@ -20,9 +20,10 @@ enum Agent {
     }
 
     static func install(flags: [String]) throws {
-        guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath().path else {
+        guard let resolved = Bundle.main.executableURL?.resolvingSymlinksInPath().path else {
             throw AgentError("couldn't work out where the kbsync binary is")
         }
+        let executable = LaunchAgent.stableExecutablePath(resolved)
         if executable.contains("/.build/") {
             print("note: the agent will run \(executable), inside the build folder.")
             print("      `make install` puts kbsync somewhere that survives a clean build.")
